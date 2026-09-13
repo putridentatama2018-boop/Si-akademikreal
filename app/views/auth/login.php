@@ -55,7 +55,7 @@ unset($_SESSION['flash']);
 <body>
 
 <div class="login-box">
-
+  
     <h2>Login Sistem Akademik - FITUR</h2>
     <p>Selamat datang di Sistem Akademik.</p>
     
