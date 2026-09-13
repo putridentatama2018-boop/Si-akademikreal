@@ -58,7 +58,6 @@ unset($_SESSION['flash']);
 
     <h2>Login Sistem Akademik - MAIN</h2>
 
-
     <?php if ($flash): ?>
         <div class="alert">
             <?= htmlspecialchars($flash) ?>
