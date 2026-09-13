@@ -2,60 +2,81 @@
 
 namespace App\Controllers;
 
-use App\Repositories\MahasiswaRepository;
+use App\Services\MahasiswaService;
 
 class MahasiswaController extends BaseController
 {
-    private MahasiswaRepository $repository;
+    private MahasiswaService $service;
 
-    public function __construct(MahasiswaRepository $repository)
+    public function __construct(MahasiswaService $service)
     {
-        $this->repository = $repository;
+        $this->service = $service;
     }
 
+    // Menampilkan semua mahasiswa
     public function index()
     {
         $keyword = $_GET['q'] ?? '';
 
         if ($keyword !== '') {
-            $mahasiswa = $this->repository->search($keyword);
+            $mahasiswa = $this->service->search($keyword);
         } else {
-            $mahasiswa = $this->repository->all();
+            $mahasiswa = $this->service->all();
         }
 
         $this->view('mahasiswa/index', [
-        'mahasiswa' => $mahasiswa
-    ]);
+            'mahasiswa' => $mahasiswa
+        ]);
     }
 
+    // Form tambah mahasiswa
     public function create()
     {
         $prodiModel = new \App\Models\ProdiModel();
 
         $prodi = $prodiModel->all();
 
-     $this->view('mahasiswa/create', [
-    'prodi' => $prodi
-    ]);
+        $this->view('mahasiswa/create', [
+            'prodi' => $prodi
+        ]);
     }
 
-    public function store()
+    // store
+        public function store()
     {
-        $this->repository->create(
-            $_POST['nim'],
-            $_POST['nama'],
-            $_POST['email'],
-            (int) $_POST['angkatan'],
-            (int) $_POST['prodi_id'],
-            $_POST['status']
-        );
+        $data = [
+            'nim' => $_POST['nim'] ?? '',
+            'nama' => $_POST['nama'] ?? '',
+            'email' => $_POST['email'] ?? '',
+            'angkatan' => $_POST['angkatan'] ?? '',
+            'prodi_id' => $_POST['prodi_id'] ?? '',
+            'status' => $_POST['status'] ?? 'aktif'
+        ];
+
+        $result = $this->service->create($data);
+
+        if (!$result['success']) {
+            $_SESSION['flash'] = [
+                'type' => 'error',
+                'message' => implode('<br>', $result['errors'])
+            ];
+
+            $this->redirect('/si-akademik/public/mahasiswa/create');
+            return;
+        }
+
+        $_SESSION['flash'] = [
+            'type' => 'success',
+            'message' => 'Data mahasiswa berhasil ditambahkan.'
+        ];
 
         $this->redirect('/si-akademik/public/mahasiswa');
     }
 
+    // Form edit mahasiswa
     public function edit(int $id)
     {
-        $mahasiswa = $this->repository->find($id);
+        $mahasiswa = $this->service->find($id);
 
         if (!$mahasiswa) {
             die('Data mahasiswa tidak ditemukan.');
@@ -65,32 +86,63 @@ class MahasiswaController extends BaseController
         $prodi = $prodiModel->all();
 
         $this->view('mahasiswa/edit', [
-        'mahasiswa' => $mahasiswa,
-        'prodi' => $prodi
-    ]);
+            'mahasiswa' => $mahasiswa,
+            'prodi' => $prodi
+        ]);
     }
 
+    // Mengubah mahasiswa
     public function update()
     {
         $id = (int) ($_POST['id'] ?? 0);
 
-        $this->repository->update(
-            $id,
-            $_POST['nim'],
-            $_POST['nama'],
-            $_POST['email'],
-            (int) $_POST['angkatan'],
-            (int) $_POST['prodi_id'],
-            $_POST['status']
-        );
+        $data = [
+            'nim' => $_POST['nim'] ?? '',
+            'nama' => $_POST['nama'] ?? '',
+            'email' => $_POST['email'] ?? '',
+            'angkatan' => $_POST['angkatan'] ?? '',
+            'prodi_id' => $_POST['prodi_id'] ?? '',
+            'status' => $_POST['status'] ?? 'aktif'
+        ];
+
+        $result = $this->service->update($id, $data);
+
+        if (!$result['success']) {
+
+            $_SESSION['flash'] = [
+                'type' => 'error',
+                'message' => implode('<br>', $result['errors'])
+            ];
+
+            $this->redirect('/si-akademik/public/mahasiswa/edit/' . $id);
+            return;
+        }
+
+        $_SESSION['flash'] = [
+            'type' => 'success',
+            'message' => 'Data mahasiswa berhasil diubah.'
+        ];
 
         $this->redirect('/si-akademik/public/mahasiswa');
     }
 
-   public function delete(int $id)
+    // Menghapus mahasiswa
+    public function delete(int $id)
     {
-    $this->repository->delete($id);
+        $result = $this->service->delete($id);
 
-    $this->redirect('/si-akademik/public/mahasiswa');
+        if ($result) {
+            $_SESSION['flash'] = [
+                'type' => 'success',
+                'message' => 'Data mahasiswa berhasil dihapus.'
+            ];
+        } else {
+            $_SESSION['flash'] = [
+                'type' => 'error',
+                'message' => 'Data mahasiswa gagal dihapus.'
+            ];
+        }
+
+        $this->redirect('/si-akademik/public/mahasiswa');
     }
 }

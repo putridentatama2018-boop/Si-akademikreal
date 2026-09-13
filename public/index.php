@@ -19,7 +19,9 @@ require_once __DIR__ . '/../app/models/mahasiswa.php';
 // Repository
 require_once __DIR__ . '/../app/repositories/MahasiswaRepository.php';
 
-// Controllers
+// Service
+require_once __DIR__ . '/../app/services/MahasiswaServices.php';
+
 // Controllers
 require_once __DIR__ . '/../app/controllers/BaseController.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
@@ -44,7 +46,25 @@ if (str_starts_with($uri, $base)) {
 $method = $_SERVER['REQUEST_METHOD'];
 
 
-// Cek route utama
+// ======================================================
+// FUNGSI MEMBUAT MAHASISWA CONTROLLER
+// Repository -> Service -> Controller
+// ======================================================
+function getMahasiswaController()
+{
+    $repository = new \App\Repositories\MahasiswaRepository(
+        \App\Core\Database::getInstance()
+    );
+
+    $service = new \App\Services\MahasiswaService($repository);
+
+    return new \App\Controllers\MahasiswaController($service);
+}
+
+
+// ======================================================
+// CEK ROUTE UTAMA
+// ======================================================
 if (isset($routes[$method][$uri])) {
 
     $route = $routes[$method][$uri];
@@ -52,7 +72,7 @@ if (isset($routes[$method][$uri])) {
     $controllerName = $route[0];
     $action = $route[1];
 
-    // Cek apakah route memiliki middleware
+    // Cek route memiliki middleware
     $middlewareList = $route[2] ?? [];
 
     // Jalankan middleware
@@ -66,14 +86,10 @@ if (isset($routes[$method][$uri])) {
     // Nama class controller
     $controllerClass = "App\\Controllers\\{$controllerName}";
 
-    // Dependency Injection khusus MahasiswaController
+    // Dependency Injection Mahasiswa
     if ($controllerName === 'MahasiswaController') {
 
-        $repository = new \App\Repositories\MahasiswaRepository(
-            \App\Core\Database::getInstance()
-        );
-
-        $controller = new $controllerClass($repository);
+        $controller = getMahasiswaController();
 
     } else {
 
@@ -86,9 +102,15 @@ if (isset($routes[$method][$uri])) {
 }
 
 
-// Route edit prodi dengan ID
+// ======================================================
+// SEGMENTS
+// ======================================================
 $segments = explode('/', trim($uri, '/'));
 
+
+// ======================================================
+// ROUTE EDIT PRODI DENGAN ID
+// ======================================================
 if (
     count($segments) === 3 &&
     $segments[0] === 'prodi' &&
@@ -108,7 +130,9 @@ if (
 }
 
 
-// Route edit matakuliah dengan ID
+// ======================================================
+// ROUTE EDIT MATAKULIAH DENGAN ID
+// ======================================================
 if (
     $method === 'GET' &&
     count($segments) === 3 &&
@@ -129,7 +153,9 @@ if (
 }
 
 
-// Route update prodi dengan ID
+// ======================================================
+// ROUTE UPDATE PRODI DENGAN ID
+// ======================================================
 if (
     $method === 'POST' &&
     count($segments) === 3 &&
@@ -150,7 +176,9 @@ if (
 }
 
 
-// Route update matakuliah dengan ID
+// ======================================================
+// ROUTE UPDATE MATAKULIAH DENGAN ID
+// ======================================================
 if (
     $method === 'POST' &&
     count($segments) === 3 &&
@@ -169,7 +197,11 @@ if (
 
     exit();
 }
-// Route edit mahasiswa dengan ID
+
+
+// ======================================================
+// ROUTE EDIT MAHASISWA DENGAN ID
+// ======================================================
 if (
     $method === 'GET' &&
     count($segments) === 3 &&
@@ -183,17 +215,17 @@ if (
 
     $id = (int) $segments[2];
 
-    $repository = new \App\Repositories\MahasiswaRepository(
-        \App\Core\Database::getInstance()
-    );
+    $controller = getMahasiswaController();
 
-    $controller = new \App\Controllers\MahasiswaController($repository);
     $controller->edit($id);
 
     exit();
 }
 
-// Route update mahasiswa
+
+// ======================================================
+// ROUTE UPDATE MAHASISWA
+// ======================================================
 if (
     $method === 'POST' &&
     count($segments) === 2 &&
@@ -204,18 +236,17 @@ if (
     $middleware = new \app\core\middleware\authmiddleware();
     $middleware->handle();
 
-    $repository = new \App\Repositories\MahasiswaRepository(
-        \App\Core\Database::getInstance()
-    );
-
-    $controller = new \App\Controllers\MahasiswaController($repository);
+    $controller = getMahasiswaController();
 
     $controller->update();
 
     exit();
 }
 
-// Route mahasiswa dengan ID
+
+// ======================================================
+// ROUTE MAHASISWA DENGAN ID
+// ======================================================
 if (
     count($segments) === 2 &&
     $segments[0] === 'mahasiswa' &&
@@ -227,12 +258,7 @@ if (
 
     $id = (int) $segments[1];
 
-    // Repository untuk MahasiswaController
-    $repository = new \App\Repositories\MahasiswaRepository(
-        \App\Core\Database::getInstance()
-    );
-
-    $controller = new \App\Controllers\MahasiswaController($repository);
+    $controller = getMahasiswaController();
 
     // Jika controller memiliki method show
     if (method_exists($controller, 'show')) {
@@ -243,7 +269,9 @@ if (
 }
 
 
-// Route delete prodi dengan ID
+// ======================================================
+// ROUTE DELETE PRODI DENGAN ID
+// ======================================================
 if (
     $method === 'POST' &&
     count($segments) === 3 &&
@@ -263,7 +291,10 @@ if (
     exit();
 }
 
-// Route delete mahasiswa dengan ID
+
+// ======================================================
+// ROUTE DELETE MAHASISWA DENGAN ID
+// ======================================================
 if (
     $method === 'GET' &&
     count($segments) === 3 &&
@@ -277,17 +308,17 @@ if (
 
     $id = (int) $segments[2];
 
-    $repository = new \App\Repositories\MahasiswaRepository(
-        \App\Core\Database::getInstance()
-    );
+    $controller = getMahasiswaController();
 
-   $controller = new \App\Controllers\MahasiswaController($repository); 
-   $controller->delete($id);
+    $controller->delete($id);
 
     exit();
 }
 
-// Route delete matakuliah dengan ID
+
+// ======================================================
+// ROUTE DELETE MATAKULIAH DENGAN ID
+// ======================================================
 if (
     $method === 'POST' &&
     count($segments) === 3 &&
@@ -308,7 +339,9 @@ if (
 }
 
 
+// ======================================================
 // 404
+// ======================================================
 http_response_code(404);
 
 echo "404 - Halaman tidak ditemukan";

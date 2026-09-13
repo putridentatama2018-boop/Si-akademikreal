@@ -2,11 +2,33 @@
 
 ob_start();
 
+// Flash message
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$flash = $_SESSION['flash'] ?? null;
+
+// Hapus flash setelah dibaca
+unset($_SESSION['flash']);
+
 ?>
 
 <h1 class="mb-4">Daftar Mahasiswa</h1>
+
+<?php if ($flash): ?>
+
+    <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?>">
+        <?= $flash['message'] ?>
+    </div>
+
+<?php endif; ?>
+
+
 <form method="GET" action="/si-akademik/public/mahasiswa" class="mb-3">
+
     <div class="input-group">
+
         <input
             type="text"
             name="q"
@@ -14,13 +36,17 @@ ob_start();
             placeholder="Cari berdasarkan NIM atau Nama..."
             value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
         >
+
         <button type="submit" class="btn btn-primary">
             Cari
         </button>
+
         <a href="/si-akademik/public/mahasiswa" class="btn btn-secondary">
             Reset
         </a>
+
     </div>
+
 </form>
 
 
@@ -28,9 +54,11 @@ ob_start();
     Tambah Mahasiswa
 </a>
 
+
 <table class="table table-bordered table-striped">
 
     <thead class="table-dark">
+
         <tr>
             <th>No</th>
             <th>NIM</th>
@@ -41,7 +69,9 @@ ob_start();
             <th>Status</th>
             <th>Aksi</th>
         </tr>
+
     </thead>
+
 
     <tbody>
 
@@ -83,14 +113,18 @@ ob_start();
 
             <td>
 
-                <a href="/si-akademik/public/mahasiswa/edit/<?= $mhs['id'] ?>"
-                   class="btn btn-warning btn-sm">
+                <a
+                    href="/si-akademik/public/mahasiswa/edit/<?= $mhs['id'] ?>"
+                    class="btn btn-warning btn-sm"
+                >
                     Edit
                 </a>
 
-                <a href="/si-akademik/public/mahasiswa/delete/<?= $mhs['id'] ?>"
-                   class="btn btn-danger btn-sm"
-                   onclick="return confirm('Yakin ingin menghapus data ini?')">
+                <a
+                    href="/si-akademik/public/mahasiswa/delete/<?= $mhs['id'] ?>"
+                    class="btn btn-danger btn-sm"
+                    onclick="return confirm('Yakin ingin menghapus data ini?')"
+                >
                     Hapus
                 </a>
 
@@ -103,6 +137,7 @@ ob_start();
     </tbody>
 
 </table>
+
 
 <?php
 

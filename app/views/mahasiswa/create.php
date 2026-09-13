@@ -1,10 +1,20 @@
-<?php
-
-ob_start();
-
-?>
-
+<?php 
+if (session_status() === PHP_SESSION_NONE) { 
+    session_start(); 
+} 
+ 
+$flash = $_SESSION['flash'] ?? null; 
+unset($_SESSION['flash']); 
+?> 
+ 
 <h1 class="mb-4">Tambah Mahasiswa</h1>
+
+<?php if ($flash): ?>
+    <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?>">
+        <?= $flash['message'] ?>
+    </div>
+<?php endif; ?>
+ 
 
 <form action="/si-akademik/public/mahasiswa" method="POST">
 
