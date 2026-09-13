@@ -56,7 +56,8 @@ unset($_SESSION['flash']);
 
 <div class="login-box">
 
-    <h1>Login Sistem Akademik</h1>
+    <h2>Login Sistem Akademik - MAIN</h2>
+
 
     <?php if ($flash): ?>
         <div class="alert">
