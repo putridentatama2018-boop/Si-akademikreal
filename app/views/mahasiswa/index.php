@@ -18,8 +18,18 @@ unset($_SESSION['flash']);
 
 <?php if ($flash): ?>
 
-    <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?>">
-        <?= $flash['message'] ?>
+    <div class="alert alert-<?= $flash['type'] === 'success' ? 'success' : 'danger' ?> alert-dismissible fade show d-flex justify-content-between align-items-center"
+         role="alert">
+
+        <span>
+            <?= $flash['message'] ?>
+        </span>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"></button>
+
     </div>
 
 <?php endif; ?>

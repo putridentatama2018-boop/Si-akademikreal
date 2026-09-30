@@ -10,10 +10,16 @@ $routes = [
         '/' => ['HomeController', 'index'],
 
         // Halaman login
-        '/login' => ['AuthController', 'loginForm'],
+        '/login' => [
+            'AuthController',
+            'loginForm'
+        ],
 
         // Logout
-        '/logout' => ['AuthController', 'logout'],
+        '/logout' => [
+            'AuthController',
+            'logout'
+        ],
 
         // Dashboard
         '/dashboard' => [
@@ -22,13 +28,21 @@ $routes = [
             [authmiddleware::class]
         ],
 
+        // =========================
         // MAHASISWA
+        // =========================
+
         '/mahasiswa' => [
             'MahasiswaController',
             'index',
             [authmiddleware::class]
         ],
 
+        '/api/mahasiswa' => [
+            'MahasiswaApiController',
+            'index'
+        ],
+        
         '/mahasiswa/create' => [
             'MahasiswaController',
             'create',
@@ -47,7 +61,10 @@ $routes = [
             [authmiddleware::class]
         ],
 
+        // =========================
         // PRODI
+        // =========================
+
         '/prodi' => [
             'ProdiController',
             'index',
@@ -66,7 +83,10 @@ $routes = [
             [authmiddleware::class]
         ],
 
+        // =========================
         // MATA KULIAH
+        // =========================
+
         '/matakuliah' => [
             'MatakuliahController',
             'index',
@@ -82,13 +102,28 @@ $routes = [
 
     'POST' => [
 
-        // Login
+        // =========================
+        // LOGIN
+        // =========================
+
         '/login' => [
             'AuthController',
             'login'
         ],
 
+        // =========================
+        // API REGISTER - ACARA 19
+        // =========================
+
+        '/register' => [
+            'AuthController',
+            'register'
+        ],
+
+        // =========================
         // MAHASISWA
+        // =========================
+
         '/mahasiswa' => [
             'MahasiswaController',
             'store',
@@ -101,14 +136,20 @@ $routes = [
             [authmiddleware::class]
         ],
 
+        // =========================
         // PRODI
+        // =========================
+
         '/prodi' => [
             'ProdiController',
             'store',
             [authmiddleware::class]
         ],
 
+        // =========================
         // MATA KULIAH
+        // =========================
+
         '/matakuliah' => [
             'MatakuliahController',
             'store',

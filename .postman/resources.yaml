@@ -1,0 +1,8 @@
+workspace:
+  id: 23f0ee71-af5b-482c-81f4-ac372ca1857a
+localResources:
+  specs:
+    - ../C:/xampp/htdocs/si-akademik/docs/openapi.yaml
+resourceNameMappings:
+  specs:
+    - ../docs/openapi.yaml: openapi.yaml

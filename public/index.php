@@ -1,55 +1,51 @@
 <?php
 
-// Konfigurasi
-require_once __DIR__ . '/../config/app.php';
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-// Routes
+require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../routes/web.php';
 
-// Middleware
 require_once __DIR__ . '/../app/core/middleware/authmiddleware.php';
 require_once __DIR__ . '/../app/core/Database.php';
+require_once __DIR__ . '/../app/core/Response.php';
 
-// Models
 require_once __DIR__ . '/../app/models/Model.php';
 require_once __DIR__ . '/../app/models/ProdiModel.php';
 require_once __DIR__ . '/../app/models/MatakuliahModel.php';
 require_once __DIR__ . '/../app/models/mahasiswa.php';
+require_once __DIR__ . '/../app/models/Buku.php';
 
-// Repository
 require_once __DIR__ . '/../app/repositories/MahasiswaRepository.php';
 
-// Service
-require_once __DIR__ . '/../app/services/MahasiswaServices.php';
+require_once __DIR__ . '/../app/services/MahasiswaService.php';
 
-// Controllers
 require_once __DIR__ . '/../app/controllers/BaseController.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
 require_once __DIR__ . '/../app/controllers/DashboardController.php';
 require_once __DIR__ . '/../app/controllers/MahasiswaController.php';
+require_once __DIR__ . '/../app/controllers/MahasiswaApiController.php';
 require_once __DIR__ . '/../app/controllers/ProdiController.php';
 require_once __DIR__ . '/../app/controllers/MatakuliahController.php';
 require_once __DIR__ . '/../app/controllers/HomeController.php';
+require_once __DIR__ . '/../app/controllers/BukuController.php';
 
 
-// Ambil URI
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Hilangkan base path
 $base = '/si-akademik/public';
 
 if (str_starts_with($uri, $base)) {
     $uri = substr($uri, strlen($base)) ?: '/';
 }
 
-// Method GET / POST
 $method = $_SERVER['REQUEST_METHOD'];
 
 
-// ======================================================
-// FUNGSI MEMBUAT MAHASISWA CONTROLLER
-// Repository -> Service -> Controller
-// ======================================================
+/*
+ * Membuat MahasiswaController
+ */
 function getMahasiswaController()
 {
     $repository = new \App\Repositories\MahasiswaRepository(
@@ -62,9 +58,22 @@ function getMahasiswaController()
 }
 
 
-// ======================================================
-// CEK ROUTE UTAMA
-// ======================================================
+/*
+ * Membuat MahasiswaApiController
+ */
+function getMahasiswaApiController()
+{
+    $repository = new \App\Repositories\MahasiswaRepository(
+        \App\Core\Database::getInstance()
+    );
+
+    return new \App\Controllers\MahasiswaApiController($repository);
+}
+
+
+/*
+ * Route utama
+ */
 if (isset($routes[$method][$uri])) {
 
     $route = $routes[$method][$uri];
@@ -72,10 +81,8 @@ if (isset($routes[$method][$uri])) {
     $controllerName = $route[0];
     $action = $route[1];
 
-    // Cek route memiliki middleware
     $middlewareList = $route[2] ?? [];
 
-    // Jalankan middleware
     foreach ($middlewareList as $middleware) {
 
         $middlewareInstance = new $middleware();
@@ -83,13 +90,15 @@ if (isset($routes[$method][$uri])) {
         $middlewareInstance->handle();
     }
 
-    // Nama class controller
     $controllerClass = "App\\Controllers\\{$controllerName}";
 
-    // Dependency Injection Mahasiswa
     if ($controllerName === 'MahasiswaController') {
 
         $controller = getMahasiswaController();
+
+    } elseif ($controllerName === 'MahasiswaApiController') {
+
+        $controller = getMahasiswaApiController();
 
     } else {
 
@@ -102,16 +111,124 @@ if (isset($routes[$method][$uri])) {
 }
 
 
-// ======================================================
-// SEGMENTS
-// ======================================================
 $segments = explode('/', trim($uri, '/'));
 
 
-// ======================================================
-// ROUTE EDIT PRODI DENGAN ID
-// ======================================================
+/*
+ * Route Buku
+ */
 if (
+    $method === 'GET' &&
+    count($segments) === 1 &&
+    $segments[0] === 'buku'
+) {
+
+    $controller = new \App\Controllers\BukuController();
+
+    $controller->index();
+
+    exit();
+}
+
+
+/*
+ * API Mahasiswa
+ */
+
+// GET /api/mahasiswa
+if (
+    $method === 'GET' &&
+    count($segments) === 2 &&
+    $segments[0] === 'api' &&
+    $segments[1] === 'mahasiswa'
+) {
+
+    $controller = getMahasiswaApiController();
+
+    $controller->index();
+
+    exit();
+}
+
+
+// GET /api/mahasiswa/{id}
+if (
+    $method === 'GET' &&
+    count($segments) === 3 &&
+    $segments[0] === 'api' &&
+    $segments[1] === 'mahasiswa' &&
+    is_numeric($segments[2])
+) {
+
+    $id = (int) $segments[2];
+
+    $controller = getMahasiswaApiController();
+
+    $controller->show($id);
+
+    exit();
+}
+
+
+// POST /api/mahasiswa
+if (
+    $method === 'POST' &&
+    count($segments) === 2 &&
+    $segments[0] === 'api' &&
+    $segments[1] === 'mahasiswa'
+) {
+
+    $controller = getMahasiswaApiController();
+
+    $controller->store();
+
+    exit();
+}
+
+
+// PUT /api/mahasiswa/{id}
+if (
+    $method === 'PUT' &&
+    count($segments) === 3 &&
+    $segments[0] === 'api' &&
+    $segments[1] === 'mahasiswa' &&
+    is_numeric($segments[2])
+) {
+
+    $id = (int) $segments[2];
+
+    $controller = getMahasiswaApiController();
+
+    $controller->update($id);
+
+    exit();
+}
+
+
+// DELETE /api/mahasiswa/{id}
+if (
+    $method === 'DELETE' &&
+    count($segments) === 3 &&
+    $segments[0] === 'api' &&
+    $segments[1] === 'mahasiswa' &&
+    is_numeric($segments[2])
+) {
+
+    $id = (int) $segments[2];
+
+    $controller = getMahasiswaApiController();
+
+    $controller->destroy($id);
+
+    exit();
+}
+
+
+/*
+ * Edit Prodi
+ */
+if (
+    $method === 'GET' &&
     count($segments) === 3 &&
     $segments[0] === 'prodi' &&
     $segments[1] === 'edit' &&
@@ -119,20 +236,22 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[2];
 
     $controller = new \App\Controllers\ProdiController();
+
     $controller->edit($id);
 
     exit();
 }
 
 
-// ======================================================
-// ROUTE EDIT MATAKULIAH DENGAN ID
-// ======================================================
+/*
+ * Edit Mata Kuliah
+ */
 if (
     $method === 'GET' &&
     count($segments) === 3 &&
@@ -142,20 +261,22 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[2];
 
     $controller = new \App\Controllers\MatakuliahController();
+
     $controller->edit($id);
 
     exit();
 }
 
 
-// ======================================================
-// ROUTE UPDATE PRODI DENGAN ID
-// ======================================================
+/*
+ * Update Prodi
+ */
 if (
     $method === 'POST' &&
     count($segments) === 3 &&
@@ -165,20 +286,22 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[2];
 
     $controller = new \App\Controllers\ProdiController();
+
     $controller->update($id);
 
     exit();
 }
 
 
-// ======================================================
-// ROUTE UPDATE MATAKULIAH DENGAN ID
-// ======================================================
+/*
+ * Update Mata Kuliah
+ */
 if (
     $method === 'POST' &&
     count($segments) === 3 &&
@@ -188,20 +311,22 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[2];
 
     $controller = new \App\Controllers\MatakuliahController();
+
     $controller->update($id);
 
     exit();
 }
 
 
-// ======================================================
-// ROUTE EDIT MAHASISWA DENGAN ID
-// ======================================================
+/*
+ * Edit Mahasiswa
+ */
 if (
     $method === 'GET' &&
     count($segments) === 3 &&
@@ -211,6 +336,7 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[2];
@@ -223,9 +349,9 @@ if (
 }
 
 
-// ======================================================
-// ROUTE UPDATE MAHASISWA
-// ======================================================
+/*
+ * Update Mahasiswa
+ */
 if (
     $method === 'POST' &&
     count($segments) === 2 &&
@@ -234,6 +360,7 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $controller = getMahasiswaController();
@@ -244,9 +371,9 @@ if (
 }
 
 
-// ======================================================
-// ROUTE MAHASISWA DENGAN ID
-// ======================================================
+/*
+ * Mahasiswa berdasarkan ID
+ */
 if (
     count($segments) === 2 &&
     $segments[0] === 'mahasiswa' &&
@@ -254,13 +381,13 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[1];
 
     $controller = getMahasiswaController();
 
-    // Jika controller memiliki method show
     if (method_exists($controller, 'show')) {
         $controller->show($id);
     }
@@ -269,9 +396,9 @@ if (
 }
 
 
-// ======================================================
-// ROUTE DELETE PRODI DENGAN ID
-// ======================================================
+/*
+ * Delete Prodi
+ */
 if (
     $method === 'POST' &&
     count($segments) === 3 &&
@@ -281,20 +408,22 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[2];
 
     $controller = new \App\Controllers\ProdiController();
+
     $controller->delete($id);
 
     exit();
 }
 
 
-// ======================================================
-// ROUTE DELETE MAHASISWA DENGAN ID
-// ======================================================
+/*
+ * Delete Mahasiswa
+ */
 if (
     $method === 'GET' &&
     count($segments) === 3 &&
@@ -304,44 +433,24 @@ if (
 ) {
 
     $middleware = new \app\core\middleware\authmiddleware();
+
     $middleware->handle();
 
     $id = (int) $segments[2];
 
     $controller = getMahasiswaController();
 
-    $controller->delete($id);
+    $controller->delete((int) $segments[2]);
 
     exit();
 }
 
 
-// ======================================================
-// ROUTE DELETE MATAKULIAH DENGAN ID
-// ======================================================
-if (
-    $method === 'POST' &&
-    count($segments) === 3 &&
-    $segments[0] === 'matakuliah' &&
-    $segments[1] === 'delete' &&
-    is_numeric($segments[2])
-) {
-
-    $middleware = new \app\core\middleware\authmiddleware();
-    $middleware->handle();
-
-    $id = (int) $segments[2];
-
-    $controller = new \App\Controllers\MatakuliahController();
-    $controller->delete($id);
-
-    exit();
-}
-
-
-// ======================================================
-// 404
-// ======================================================
-http_response_code(404);
-
-echo "404 - Halaman tidak ditemukan";
+/*
+ * 404
+ */
+\App\Core\Response::json(
+    404,
+    false,
+    'Halaman tidak ditemukan'
+);
