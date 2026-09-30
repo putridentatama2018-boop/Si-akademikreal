@@ -1,0 +1,230 @@
+openapi: 3.0.0
+
+info:
+  title: API Sistem Informasi Akademik
+  description: Dokumentasi REST API Sistem Informasi Akademik berbasis PHP MVC
+  version: 1.0.0
+
+servers:
+  - url: http://localhost/si-akademik/public
+
+paths:
+
+  /api/mahasiswa:
+
+    get:
+      summary: Mengambil seluruh data mahasiswa
+      description: Mengambil seluruh data mahasiswa dari database.
+      responses:
+        '200':
+          description: Data mahasiswa berhasil diambil
+
+    post:
+      summary: Menambahkan data mahasiswa
+      description: Menambahkan data mahasiswa baru.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nim
+                - nama
+                - email
+                - angkatan
+                - prodi_id
+              properties:
+                nim:
+                  type: string
+                  example: "2700001"
+                nama:
+                  type: string
+                  example: "Mahasiswa Acara 21"
+                email:
+                  type: string
+                  format: email
+                  example: "acara21@gmail.com"
+                angkatan:
+                  type: string
+                  example: "2026"
+                prodi_id:
+                  type: integer
+                  example: 1
+                status:
+                  type: string
+                  example: "aktif"
+      responses:
+        '201':
+          description: Data mahasiswa berhasil ditambahkan
+        '400':
+          description: Data yang dikirim tidak valid
+
+  /api/mahasiswa/{id}:
+
+    get:
+      summary: Mengambil data mahasiswa berdasarkan ID
+      description: Mengambil satu data mahasiswa berdasarkan ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID mahasiswa
+          schema:
+            type: integer
+          example: 32
+      responses:
+        '200':
+          description: Data mahasiswa berhasil diambil
+        '404':
+          description: Data mahasiswa tidak ditemukan
+
+    put:
+      summary: Mengubah data mahasiswa
+      description: Mengubah data mahasiswa berdasarkan ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID mahasiswa
+          schema:
+            type: integer
+          example: 32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nim
+                - nama
+                - email
+                - angkatan
+                - prodi_id
+              properties:
+                nim:
+                  type: string
+                  example: "2700001"
+                nama:
+                  type: string
+                  example: "Mahasiswa Acara 21 Update"
+                email:
+                  type: string
+                  format: email
+                  example: "acara21update@gmail.com"
+                angkatan:
+                  type: string
+                  example: "2026"
+                prodi_id:
+                  type: integer
+                  example: 1
+                status:
+                  type: string
+                  example: "aktif"
+      responses:
+        '200':
+          description: Data mahasiswa berhasil diubah
+        '400':
+          description: Data yang dikirim tidak valid
+        '404':
+          description: Data mahasiswa tidak ditemukan
+        '401':
+          description: Token tidak valid atau tidak tersedia
+
+    delete:
+      summary: Menghapus data mahasiswa
+      description: Menghapus data mahasiswa berdasarkan ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID mahasiswa
+          schema:
+            type: integer
+          example: 32
+      responses:
+        '200':
+          description: Data mahasiswa berhasil dihapus
+        '404':
+          description: Data mahasiswa tidak ditemukan
+        '401':
+          description: Token tidak valid atau tidak tersedia
+
+
+  /login:
+
+    post:
+      summary: Autentikasi pengguna
+      description: Endpoint login pengguna.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "admin"
+                password:
+                  type: string
+                  format: password
+                  example: "admin123"
+      responses:
+        '200':
+          description: Login berhasil
+        '401':
+          description: Kredensial tidak valid
+
+
+  /register:
+
+    post:
+      summary: Pendaftaran pengguna baru
+      description: Membuat akun pengguna baru.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "mahasiswa"
+                email:
+                  type: string
+                  format: email
+                  example: "mahasiswa@gmail.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+      responses:
+        '201':
+          description: Pengguna berhasil didaftarkan
+        '400':
+          description: Data pendaftaran tidak lengkap atau tidak valid
+
+
+components:
+
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token Bearer untuk autentikasi API

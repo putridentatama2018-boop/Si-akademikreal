@@ -102,6 +102,24 @@ class MahasiswaRepository
         return $stmt->fetchAll();
     }
 
+    // Mengecek apakah NIM sudah terdaftar
+    public function existsByNim(string $nim): bool
+    {
+        $sql = "
+            SELECT COUNT(*)
+            FROM mahasiswa
+            WHERE nim = :nim
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            'nim' => $nim
+        ]);
+
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
     // Menambahkan mahasiswa
     public function create(
         string $nim,
@@ -112,12 +130,11 @@ class MahasiswaRepository
         string $status = 'aktif'
     ): bool {
         $sql = "
-            INSERT INTO mahasiswa
-            (nim, nama, email, angkatan, prodi_id, status)
-            VALUES
-            (:nim, :nama, :email, :angkatan, :prodi_id, :status)
-        ";
-
+                INSERT INTO mahasiswa
+                (nim, nama, email, angkatan, prodi_id, status)
+                VALUES
+                (:nim, :nama, :email, :angkatan, :prodi_id, :status)
+            ";
         $stmt = $this->db->prepare($sql);
 
         return $stmt->execute([

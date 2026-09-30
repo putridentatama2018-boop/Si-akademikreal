@@ -86,33 +86,71 @@ class MahasiswaModel extends Model
         return $data ?: null;
     }
 
-    public function create(
-        string $nim,
-        string $nama,
-        string $email,
-        int $angkatan,
-        int $prodi_id,
-        string $status = 'aktif'
-    ): bool {
+    public function nimExists(string $nim, ?int $excludeId = null): bool
+{
+    if ($excludeId !== null) {
         $sql = "
-            INSERT INTO mahasiswa
-            (nim, nama, email, angkatan, prodi_id, status)
-            VALUES
-            (:nim, :nama, :email, :angkatan, :prodi_id, :status)
+            SELECT COUNT(*)
+            FROM mahasiswa
+            WHERE nim = :nim
+            AND id != :id
         ";
 
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
+        $stmt->execute([
             'nim' => $nim,
-            'nama' => $nama,
-            'email' => $email,
-            'angkatan' => $angkatan,
-            'prodi_id' => $prodi_id,
-            'status' => $status
+            'id' => $excludeId
+        ]);
+    } else {
+        $sql = "
+            SELECT COUNT(*)
+            FROM mahasiswa
+            WHERE nim = :nim
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            'nim' => $nim
         ]);
     }
 
+    return (int) $stmt->fetchColumn() > 0;
+}
+
+ public function create(
+    string $nim,
+    string $nama,
+    string $email,
+    int $angkatan,
+    int $prodi_id,
+    string $status = 'aktif'
+): bool {
+
+    // Cek apakah NIM sudah digunakan
+    if ($this->nimExists($nim)) {
+        return false;
+    }
+
+    $sql = "
+        INSERT INTO mahasiswa
+        (nim, nama, email, angkatan, prodi_id, status)
+        VALUES
+        (:nim, :nama, :email, :angkatan, :prodi_id, :status)
+    ";
+
+    $stmt = $this->db->prepare($sql);
+
+    return $stmt->execute([
+        'nim' => $nim,
+        'nama' => $nama,
+        'email' => $email,
+        'angkatan' => $angkatan,
+        'prodi_id' => $prodi_id,
+        'status' => $status
+    ]);
+}
     public function update(
         int $id,
         string $nim,
@@ -122,6 +160,10 @@ class MahasiswaModel extends Model
         int $prodi_id,
         string $status
     ): bool {
+        // Cek apakah NIM sudah digunakan mahasiswa lain
+        if ($this->nimExists($nim, $id)) {
+            return false;
+        }
         $sql = "
             UPDATE mahasiswa
             SET
