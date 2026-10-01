@@ -40,7 +40,7 @@ unset($_SESSION['flash']);
 
     <br><br>
 
-    <a href="<?= BASE_URL ?>/logout">
+    <a href="<?= BASE_URL ?>/logout" style="display: inline-block; background-color: #dc3545; color: #ffffff; padding: 6px 16px; border-radius: 4px; text-decoration: none; font-weight: 500;">
         Logout
     </a>
 
