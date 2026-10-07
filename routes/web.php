@@ -6,22 +6,33 @@ $routes = [
 
     'GET' => [
 
-        // Halaman umum
-        '/' => ['HomeController', 'index'],
+        // =========================
+        // HALAMAN UMUM
+        // =========================
 
-        // Halaman login
+        '/' => [
+            'HomeController',
+            'index'
+        ],
+
+        // =========================
+        // LOGIN
+        // =========================
+
         '/login' => [
             'AuthController',
             'loginForm'
         ],
 
-        // Logout
         '/logout' => [
             'AuthController',
             'logout'
         ],
 
-        // Dashboard
+        // =========================
+        // DASHBOARD
+        // =========================
+
         '/dashboard' => [
             'DashboardController',
             'index',
@@ -42,7 +53,7 @@ $routes = [
             'MahasiswaApiController',
             'index'
         ],
-        
+
         '/mahasiswa/create' => [
             'MahasiswaController',
             'create',
@@ -55,11 +66,13 @@ $routes = [
             [authmiddleware::class]
         ],
 
+        // Route lama delete melalui GET
         '/mahasiswa/delete/{id}' => [
             'MahasiswaController',
             'delete',
             [authmiddleware::class]
         ],
+
 
         // =========================
         // PRODI
@@ -83,6 +96,7 @@ $routes = [
             [authmiddleware::class]
         ],
 
+
         // =========================
         // MATA KULIAH
         // =========================
@@ -98,62 +112,88 @@ $routes = [
             'create',
             [authmiddleware::class]
         ],
+
     ],
+
+
+    // =========================
+    // POST
+    // =========================
 
     'POST' => [
 
-        // =========================
         // LOGIN
-        // =========================
-
         '/login' => [
             'AuthController',
             'login'
         ],
 
-        // =========================
-        // API REGISTER - ACARA 19
-        // =========================
-
+        // REGISTER
         '/register' => [
             'AuthController',
             'register'
         ],
 
-        // =========================
         // MAHASISWA
-        // =========================
-
         '/mahasiswa' => [
             'MahasiswaController',
             'store',
             [authmiddleware::class]
         ],
 
+        // Route lama untuk form edit
         '/mahasiswa/update' => [
             'MahasiswaController',
             'update',
             [authmiddleware::class]
         ],
 
-        // =========================
         // PRODI
-        // =========================
-
         '/prodi' => [
             'ProdiController',
             'store',
             [authmiddleware::class]
         ],
 
-        // =========================
         // MATA KULIAH
-        // =========================
-
         '/matakuliah' => [
             'MatakuliahController',
             'store',
             [authmiddleware::class]
         ],
-    ]
+
+    ],
+
+
+    // =========================
+    // PUT
+    // ACARA 27 - UPDATE MAHASISWA
+    // =========================
+
+    'PUT' => [
+
+        '/mahasiswa' => [
+            'MahasiswaController',
+            'update',
+            [authmiddleware::class]
+        ],
+
+    ],
+
+
+    // =========================
+    // DELETE
+    // ACARA 27 - DELETE MAHASISWA
+    // =========================
+
+   'DELETE' => [
+
+    '/mahasiswa' => [
+        'MahasiswaController',
+        'destroy',
+        [authmiddleware::class]
+    ],
+
+],
+
 ];

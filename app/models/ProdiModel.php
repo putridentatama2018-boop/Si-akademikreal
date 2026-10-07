@@ -7,7 +7,6 @@ use App\Core\Database;
 class ProdiModel
 {
     private $pdo;
-
     public function __construct()
     {
         $this->pdo = Database::getInstance();
@@ -18,9 +17,8 @@ class ProdiModel
         $stmt = $this->pdo->prepare(
             "SELECT * FROM prodi ORDER BY id ASC"
         );
-
+    
         $stmt->execute();
-
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -45,7 +43,6 @@ class ProdiModel
             "INSERT INTO prodi (kode, nama)
              VALUES (:kode, :nama)"
         );
-
         return $stmt->execute([
             'kode' => $kode,
             'nama' => $nama
@@ -60,7 +57,6 @@ class ProdiModel
                  nama = :nama
              WHERE id = :id"
         );
-
         return $stmt->execute([
             'id' => $id,
             'kode' => $kode,

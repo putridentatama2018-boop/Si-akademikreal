@@ -8,7 +8,7 @@ class MahasiswaRepository
 {
     private PDO $db;
 
-  public function __construct(PDO $db)
+    public function __construct(PDO $db)
     {
         $this->db = $db;
     }
@@ -25,6 +25,7 @@ class MahasiswaRepository
                 mahasiswa.angkatan,
                 mahasiswa.status,
                 mahasiswa.prodi_id,
+                mahasiswa.foto,
                 prodi.kode AS kode_prodi,
                 prodi.nama AS nama_prodi
             FROM mahasiswa
@@ -51,6 +52,7 @@ class MahasiswaRepository
                 mahasiswa.angkatan,
                 mahasiswa.status,
                 mahasiswa.prodi_id,
+                mahasiswa.foto,
                 prodi.kode AS kode_prodi,
                 prodi.nama AS nama_prodi
             FROM mahasiswa
@@ -82,6 +84,7 @@ class MahasiswaRepository
                 mahasiswa.angkatan,
                 mahasiswa.status,
                 mahasiswa.prodi_id,
+                mahasiswa.foto,
                 prodi.kode AS kode_prodi,
                 prodi.nama AS nama_prodi
             FROM mahasiswa
@@ -103,7 +106,7 @@ class MahasiswaRepository
     }
 
     // Mengecek apakah NIM sudah terdaftar
-    public function existsByNim(string $nim): bool
+    public function existsByNim(string $nim, ?int $excludeId = null): bool
     {
         $sql = "
             SELECT COUNT(*)
@@ -111,11 +114,21 @@ class MahasiswaRepository
             WHERE nim = :nim
         ";
 
+        if ($excludeId !== null) {
+            $sql .= " AND id != :exclude_id";
+        }
+
         $stmt = $this->db->prepare($sql);
 
-        $stmt->execute([
+        $params = [
             'nim' => $nim
-        ]);
+        ];
+
+        if ($excludeId !== null) {
+            $params['exclude_id'] = $excludeId;
+        }
+
+        $stmt->execute($params);
 
         return (int) $stmt->fetchColumn() > 0;
     }
@@ -127,14 +140,32 @@ class MahasiswaRepository
         string $email,
         int $angkatan,
         int $prodi_id,
-        string $status = 'aktif'
+        string $status = 'aktif',
+        ?string $foto = null
     ): bool {
         $sql = "
-                INSERT INTO mahasiswa
-                (nim, nama, email, angkatan, prodi_id, status)
-                VALUES
-                (:nim, :nama, :email, :angkatan, :prodi_id, :status)
-            ";
+            INSERT INTO mahasiswa
+            (
+                nim,
+                nama,
+                email,
+                angkatan,
+                prodi_id,
+                status,
+                foto
+            )
+            VALUES
+            (
+                :nim,
+                :nama,
+                :email,
+                :angkatan,
+                :prodi_id,
+                :status,
+                :foto
+            )
+        ";
+
         $stmt = $this->db->prepare($sql);
 
         return $stmt->execute([
@@ -143,7 +174,8 @@ class MahasiswaRepository
             'email' => $email,
             'angkatan' => $angkatan,
             'prodi_id' => $prodi_id,
-            'status' => $status
+            'status' => $status,
+            'foto' => $foto
         ]);
     }
 
@@ -155,7 +187,8 @@ class MahasiswaRepository
         string $email,
         int $angkatan,
         int $prodi_id,
-        string $status
+        string $status,
+        ?string $foto = null
     ): bool {
         $sql = "
             UPDATE mahasiswa
@@ -165,7 +198,8 @@ class MahasiswaRepository
                 email = :email,
                 angkatan = :angkatan,
                 prodi_id = :prodi_id,
-                status = :status
+                status = :status,
+                foto = :foto
             WHERE id = :id
         ";
 
@@ -178,7 +212,8 @@ class MahasiswaRepository
             'email' => $email,
             'angkatan' => $angkatan,
             'prodi_id' => $prodi_id,
-            'status' => $status
+            'status' => $status,
+            'foto' => $foto
         ]);
     }
 

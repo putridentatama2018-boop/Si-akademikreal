@@ -32,6 +32,9 @@ require_once __DIR__ . '/../app/controllers/HomeController.php';
 require_once __DIR__ . '/../app/controllers/BukuController.php';
 
 
+/*
+ * URI
+ */
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 $base = '/si-akademik/public';
@@ -41,6 +44,104 @@ if (str_starts_with($uri, $base)) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
+
+
+// =====================================================
+// ACARA 27
+// Membaca multipart/form-data pada method PUT
+// =====================================================
+
+if ($method === 'PUT') {
+
+    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+    if (str_contains($contentType, 'multipart/form-data')) {
+
+        $input = file_get_contents('php://input');
+
+        preg_match(
+            '/boundary=(.*)$/',
+            $contentType,
+            $matches
+        );
+
+        if (!empty($matches[1])) {
+
+            $boundary = '--' . trim($matches[1], '"');
+
+            $parts = preg_split(
+                '/\r\n' . preg_quote($boundary, '/') . '/',
+                $input
+            );
+
+            foreach ($parts as $part) {
+
+                if (empty(trim($part)) || $part === '--') {
+                    continue;
+                }
+
+                $part = ltrim($part, "\r\n");
+
+                if (str_ends_with($part, '--')) {
+                    $part = substr($part, 0, -2);
+                }
+
+                $part = rtrim($part, "\r\n");
+
+                if (
+                    preg_match(
+                        '/Content-Disposition: form-data; name="([^"]+)"(?:; filename="([^"]*)")?\r\n(?:Content-Type: ([^\r\n]+)\r\n)?\r\n(.*)/s',
+                        $part,
+                        $matches
+                    )
+                ) {
+
+                    $fieldName = $matches[1];
+
+                    $fileName = $matches[2] ?? '';
+
+                    $fileType = $matches[3] ?? '';
+
+                    $fieldValue = $matches[4];
+
+
+                    // =================================================
+                    // Jika data yang diterima adalah FILE
+                    // =================================================
+
+                    if ($fileName !== '') {
+
+                        $tempFile = tempnam(
+                            sys_get_temp_dir(),
+                            'php_put_'
+                        );
+
+                        file_put_contents(
+                            $tempFile,
+                            $fieldValue
+                        );
+
+                        $_FILES[$fieldName] = [
+                            'name' => $fileName,
+                            'type' => $fileType,
+                            'tmp_name' => $tempFile,
+                            'error' => UPLOAD_ERR_OK,
+                            'size' => filesize($tempFile)
+                        ];
+
+                    } else {
+
+                        // =================================================
+                        // Jika data yang diterima adalah INPUT BIASA
+                        // =================================================
+
+                        $_POST[$fieldName] = $fieldValue;
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 /*
@@ -79,9 +180,11 @@ if (isset($routes[$method][$uri])) {
     $route = $routes[$method][$uri];
 
     $controllerName = $route[0];
+
     $action = $route[1];
 
     $middlewareList = $route[2] ?? [];
+
 
     foreach ($middlewareList as $middleware) {
 
@@ -90,7 +193,9 @@ if (isset($routes[$method][$uri])) {
         $middlewareInstance->handle();
     }
 
+
     $controllerClass = "App\\Controllers\\{$controllerName}";
+
 
     if ($controllerName === 'MahasiswaController') {
 
@@ -104,6 +209,7 @@ if (isset($routes[$method][$uri])) {
 
         $controller = new $controllerClass();
     }
+
 
     $controller->$action();
 
@@ -389,6 +495,7 @@ if (
     $controller = getMahasiswaController();
 
     if (method_exists($controller, 'show')) {
+
         $controller->show($id);
     }
 
@@ -435,8 +542,6 @@ if (
     $middleware = new \app\core\middleware\authmiddleware();
 
     $middleware->handle();
-
-    $id = (int) $segments[2];
 
     $controller = getMahasiswaController();
 

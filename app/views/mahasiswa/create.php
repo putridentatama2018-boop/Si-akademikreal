@@ -1,22 +1,25 @@
-<?php 
-if (session_status() === PHP_SESSION_NONE) { 
-    session_start(); 
-} 
- 
-$flash = $_SESSION['flash'] ?? null; 
-unset($_SESSION['flash']); 
-?> 
- 
-<h1 class="mb-4">Tambah Mahasiswa</h1>
+    <?php 
+    ob_start();
 
-<?php if ($flash): ?>
-    <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?>">
-        <?= $flash['message'] ?>
-    </div>
-<?php endif; ?>
- 
+    if (session_status() === PHP_SESSION_NONE) { 
+        session_start(); 
+    } 
+    
+    $flash = $_SESSION['flash'] ?? null; 
+    unset($_SESSION['flash']); 
+    ?> 
+    
+    <h1 class="mb-4">Tambah Mahasiswa</h1>
 
-<form action="/si-akademik/public/mahasiswa" method="POST">
+    <?php if ($flash): ?>
+        <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?>">
+            <?= $flash['message'] ?>
+        </div>
+    <?php endif; ?>
+    
+    <form action="/si-akademik/public/mahasiswa"
+      method="POST"
+      enctype="multipart/form-data">
 
     <div class="mb-3">
         <label for="nim" class="form-label">NIM</label>
@@ -89,6 +92,21 @@ unset($_SESSION['flash']);
             <option value="nonaktif">Nonaktif</option>
 
         </select>
+    </div>
+
+    <!-- Upload Foto -->
+    <div class="mb-3">
+        <label for="foto" class="form-label">Foto Mahasiswa</label>
+
+        <input type="file"
+               name="foto"
+               id="foto"
+               class="form-control"
+               accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+
+        <div class="form-text">
+            Format yang diperbolehkan: JPG, JPEG, PNG. Maksimal 2 MB.
+        </div>
     </div>
 
     <button type="submit" class="btn btn-primary">

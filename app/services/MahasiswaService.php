@@ -52,7 +52,8 @@ class MahasiswaService
                 $data['email'],
                 (int) $data['angkatan'],
                 (int) $data['prodi_id'],
-                $data['status'] ?? 'aktif'
+                $data['status'] ?? 'aktif',
+                $data['foto'] ?? null
             );
 
             if ($result) {
@@ -69,14 +70,12 @@ class MahasiswaService
 
         } catch (\PDOException $e) {
 
-            // Menyimpan detail error ke file log
             error_log(
                 date('Y-m-d H:i:s') . ' - ' . $e->getMessage() . PHP_EOL,
                 3,
                 __DIR__ . '/../../storage/logs/app.log'
             );
 
-            // Pesan aman untuk pengguna
             return [
                 'success' => false,
                 'errors' => ['Data gagal disimpan.']
@@ -87,7 +86,7 @@ class MahasiswaService
     // Mengubah data mahasiswa
     public function update(int $id, array $data): array
     {
-        $errors = $this->validate($data);
+        $errors = $this->validate($data, $id);
 
         if (!empty($errors)) {
             return [
@@ -105,7 +104,8 @@ class MahasiswaService
                 $data['email'],
                 (int) $data['angkatan'],
                 (int) $data['prodi_id'],
-                $data['status'] ?? 'aktif'
+                $data['status'] ?? 'aktif',
+                $data['foto'] ?? null
             );
 
             return [
@@ -117,7 +117,6 @@ class MahasiswaService
 
         } catch (\PDOException $e) {
 
-            // Menyimpan detail error ke file log
             error_log(
                 date('Y-m-d H:i:s') . ' - ' . $e->getMessage() . PHP_EOL,
                 3,
@@ -140,7 +139,6 @@ class MahasiswaService
 
         } catch (\PDOException $e) {
 
-            // Menyimpan detail error ke file log
             error_log(
                 date('Y-m-d H:i:s') . ' - ' . $e->getMessage() . PHP_EOL,
                 3,
@@ -148,12 +146,11 @@ class MahasiswaService
             );
 
             return false;
-            
         }
     }
 
     // Validasi data mahasiswa
-    private function validate(array $data): array
+    private function validate(array $data, ?int $excludeId = null): array
     {
         $errors = [];
 
@@ -165,7 +162,7 @@ class MahasiswaService
         } else {
 
             // Mengecek NIM duplikat
-            if ($this->repository->existsByNim(trim($data['nim']))) {
+            if ($this->repository->existsByNim(trim($data['nim']), $excludeId)) {
                 $errors[] = 'NIM sudah terdaftar.';
             }
         }
